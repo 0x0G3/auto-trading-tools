@@ -1,26 +1,10 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import {
-  arbitrum,
-  base,
-  mainnet,
-  optimism,
-  polygon,
-  sepolia,
-} from "wagmi/chains";
-
 import { sonic } from "./chains"; // Adjust the import path as necessary
+import { arbitrum, base, mainnet, optimism, polygon } from "viem/chains";
 
 export const config = getDefaultConfig({
-  appName: "RainbowKit App",
+  appName: "sonic assist",
   projectId: "YOUR_PROJECT_ID",
-  chains: [
-    mainnet,
-    polygon,
-    optimism,
-    arbitrum,
-    base,
-    sonic,
-    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === "true" ? [sepolia] : []),
-  ],
+  chains: [sonic, mainnet, polygon, optimism, arbitrum, base],
   ssr: true,
 });

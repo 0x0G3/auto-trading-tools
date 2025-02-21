@@ -6,6 +6,15 @@ export default function ExportImportButton() {
   const [isModelOpen, setIsModelOpen] = useState(false);
   const [address, setAddress] = useState("");
 
+  const handleAddress = () => {
+    if (address) {
+      setAddresses((prev) => [...prev, address]);
+      setAddress("");
+    } else {
+      alert("Please enter an address");
+    }
+  };
+
   return (
     <div>
       {/* export/import button */}

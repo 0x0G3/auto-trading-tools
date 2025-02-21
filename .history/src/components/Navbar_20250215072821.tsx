@@ -1,26 +1,19 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
-import React, { useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import React from "react";
 
 export default function Navbar() {
-  const { address, isConnected } = useAuth();
-
-  // ✅ Log only when address updates
-  useEffect(() => {
-    if (isConnected) {
-      console.log("Connected Wallet Address:", address);
-    }
-  }, [isConnected, address]);
-
   return (
     <div>
       <div className="navbar bg-base-100 px-6 shadow-md">
+        {/* Left Section: Branding */}
         <div className="flex-none">
           <a className="btn btn-ghost text-2xl font-bold">TradeAssist</a>
         </div>
 
+        {/* Center Section: Navigation Links and Search */}
         <div className="flex flex-1 items-center justify-center gap-8">
+          {/* Navigation Links */}
           <div className="flex items-center space-x-6 md:space-x-8 ml-8">
             <Link
               href="#"
@@ -60,6 +53,7 @@ export default function Navbar() {
             </Link>
           </div>
 
+          {/* Search Bar */}
           <div className="relative flex-1 max-w-md lg:max-w-xl mr-8">
             <input
               type="text"
@@ -85,19 +79,13 @@ export default function Navbar() {
           </div>
         </div>
 
+        {/* Right Section: Connect Button */}
         <div className="flex-none">
           <div className="dropdown dropdown-end mx-4">
             <ConnectButton />
           </div>
         </div>
       </div>
-
-      {isConnected && (
-        <div className="text-center mt-2 text-sm text-gray-500">
-          Connected Wallet:{" "}
-          <span className="font-bold text-blue-500">{address}</span>
-        </div>
-      )}
     </div>
   );
 }

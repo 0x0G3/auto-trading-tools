@@ -7,7 +7,6 @@ import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 import { config } from "../wagmi";
-import { AuthProvider } from "../context/AuthContext"; // ✅ Import Auth Context
 import Navbar from "../components/Navbar";
 
 const client = new QueryClient();
@@ -17,12 +16,8 @@ function MyApp({ Component, pageProps }: AppProps) {
     <WagmiProvider config={config}>
       <QueryClientProvider client={client}>
         <RainbowKitProvider>
-          <AuthProvider>
-            {" "}
-            {/* ✅ Wrap with AuthProvider */}
-            <Navbar />
-            <Component {...pageProps} />
-          </AuthProvider>
+          <Navbar />
+          <Component {...pageProps} />
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

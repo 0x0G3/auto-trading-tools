@@ -1,5 +1,5 @@
 import React from "react";
-import FollowMenu from "./FollowMenu";
+import FollowMenu from "./FollowMenu/FollowMenu";
 import ActivityMenu from "./ActivityMenu";
 import WatchListMenu from "./WatchListMenu";
 

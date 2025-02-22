@@ -1,17 +1,17 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 import React, { useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext"; // Adjust path if needed
 
 export default function Navbar() {
-  const { address, isConnected } = useAuth();
+  const { address, isConnected, savedAddresses } = useAuth();
 
-  // ✅ Log only when address updates
   useEffect(() => {
     if (isConnected) {
       console.log("Connected Wallet Address:", address);
+      console.log("Saved Addresses:", savedAddresses);
     }
-  }, [isConnected, address]);
+  }, [isConnected, address, savedAddresses]);
 
   return (
     <div>
@@ -94,8 +94,16 @@ export default function Navbar() {
 
       {isConnected && (
         <div className="text-center mt-2 text-sm text-gray-500">
-          Connected Wallet:{" "}
-          <span className="font-bold text-blue-500">{address}</span>
+          <p>
+            Connected Wallet:{" "}
+            <span className="font-bold text-blue-500">{address}</span>
+          </p>
+          <p>
+            Saved Addresses:{" "}
+            <span className="font-bold text-blue-500">
+              {savedAddresses.join(", ") || "None"}
+            </span>
+          </p>
         </div>
       )}
     </div>

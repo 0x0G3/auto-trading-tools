@@ -1,7 +1,7 @@
 import React from "react";
 import FollowMenu from "./FollowMenu";
-import ActivityMenu from "./ActivityMenu";
 import WatchListMenu from "./WatchListMenu";
+import ActivityMenu from "./ActivityMenu";
 
 type MenuProps = {
   activeTab: string;
@@ -15,17 +15,24 @@ export default function Menu({ activeTab, setActiveTab }: MenuProps) {
     { id: "activity", label: "Activity" },
   ];
 
+  const handleFilter = (range: string) => {
+    console.log("Filter range selected in Menu:", range);
+    // Add filtering logic here if Menu manages Activity state
+  };
+
+  const handleBuy = () => {
+    console.log("Buy action triggered in Menu");
+    // Add buy logic here if needed
+  };
+
   const renderRightContent = () => {
     switch (activeTab) {
       case "watchlist":
         return <WatchListMenu />;
-
       case "follow":
         return <FollowMenu />;
-
       case "activity":
-        return <ActivityMenu />;
-
+        return <ActivityMenu onFilter={handleFilter} onBuy={handleBuy} />;
       default:
         return null;
     }

@@ -91,21 +91,6 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-
-      {isConnected && (
-        <div className="text-center mt-2 text-sm text-gray-500">
-          <p>
-            Connected Wallet:{" "}
-            <span className="font-bold text-blue-500">{address}</span>
-          </p>
-          <p>
-            Saved Addresses:{" "}
-            <span className="font-bold text-blue-500">
-              {savedAddresses.join(", ") || "None"}
-            </span>
-          </p>
-        </div>
-      )}
     </div>
   );
 }

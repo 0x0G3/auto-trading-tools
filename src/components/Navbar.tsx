@@ -41,10 +41,10 @@ export default function Navbar() {
               Trending
             </Link>
             <Link
-              href="#"
+              href="/auto-trade"
               className="text-sm md:text-lg font-semibold hover:text-blue-500 transition duration-200"
             >
-              CopyTrade
+              Auto-Trade
             </Link>
             <Link
               href="/holding"

@@ -10,6 +10,7 @@ import { config } from "../wagmi";
 import { AuthProvider } from "../context/AuthContext"; // ✅ Import Auth Context
 import Navbar from "../components/Navbar";
 import { WatchlistProvider } from "../context/WatchlistContext";
+import { BinanceProvider } from "../context/BinanceContext";
 
 const client = new QueryClient();
 
@@ -20,8 +21,10 @@ function MyApp({ Component, pageProps }: AppProps) {
         <RainbowKitProvider>
           <AuthProvider>
             <WatchlistProvider>
-              <Navbar />
-              <Component {...pageProps} />
+              <BinanceProvider>
+                <Navbar />
+                <Component {...pageProps} />
+              </BinanceProvider>
             </WatchlistProvider>
           </AuthProvider>
         </RainbowKitProvider>

@@ -1,12 +1,36 @@
-import React from "react";
+import React, { useState } from "react";
+import { useWatchlist } from "../../../context/WatchlistContext"; // Adjust path
+import { useAuth } from "../../../context/AuthContext"; // Adjust path
 import ExportImportButton from "../../UI/ExportImportButton";
 
-function WatchListMenu() {
+export default function WatchListMenu() {
+  const { addToWatchlist } = useWatchlist();
+  const { isConnected } = useAuth();
+  const [tokenAddress, setTokenAddress] = useState("");
+  const [timeframe, setTimeframe] = useState("24h");
+
+  const handleAddToken = () => {
+    if (!isConnected) {
+      alert("Please connect your wallet first");
+      return;
+    }
+    if (tokenAddress.trim()) {
+      console.log("Triggering addToWatchlist with:", tokenAddress.trim());
+      addToWatchlist(tokenAddress.trim());
+      setTokenAddress("");
+    } else {
+      alert("Please enter a token address");
+    }
+  };
+
   return (
     <div className="flex items-center justify-between w-full">
-      {/* Content next to tabs */}
       <div className="flex items-center space-x-4 ml-8">
-        <select className="select select-bordered w-24">
+        <select
+          className="select select-bordered w-24"
+          value={timeframe}
+          onChange={(e) => setTimeframe(e.target.value)}
+        >
           <option value="1m">1m</option>
           <option value="5m">5m</option>
           <option value="1h">1h</option>
@@ -15,23 +39,16 @@ function WatchListMenu() {
         </select>
         <input
           type="text"
-          placeholder="Search Token"
+          placeholder="Add Token Address"
           className="input input-bordered w-36"
+          value={tokenAddress}
+          onChange={(e) => setTokenAddress(e.target.value)}
         />
-        <input
-          type="number"
-          placeholder="Amount to Purchase"
-          className="input input-bordered w-36"
-        />
+        <button className="btn btn-primary" onClick={handleAddToken}>
+          Add
+        </button>
       </div>
-
-      {/* Export/Import Button */}
-      {/* <div className="flex items-center ml-auto">
-                  <button className="btn btn-outline">Export/Import</button>
-                </div> */}
       <ExportImportButton />
     </div>
   );
 }
-
-export default WatchListMenu;

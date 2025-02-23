@@ -9,6 +9,7 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { config } from "../wagmi";
 import { AuthProvider } from "../context/AuthContext"; // ✅ Import Auth Context
 import Navbar from "../components/Navbar";
+import { WatchlistProvider } from "../context/WatchlistContext";
 
 const client = new QueryClient();
 
@@ -18,10 +19,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       <QueryClientProvider client={client}>
         <RainbowKitProvider>
           <AuthProvider>
-            {" "}
-            {/* ✅ Wrap with AuthProvider */}
-            <Navbar />
-            <Component {...pageProps} />
+            <WatchlistProvider>
+              <Navbar />
+              <Component {...pageProps} />
+            </WatchlistProvider>
           </AuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>

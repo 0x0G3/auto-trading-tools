@@ -1,38 +1,116 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useBinance } from "../../../../context/BinanceContext"; // Adjust path
+import GridBot from "./GridBot";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+interface Order {
+  orderId: number;
+  price: number;
+  quantity: number;
+}
+
+interface PriceData {
+  time: string;
+  price: number;
+}
 
 export default function Cex() {
   const { apiKey, apiSecret } = useBinance();
-  const [strategy, setStrategy] = useState<string>("grid"); // Default to grid
+  const [strategy, setStrategy] = useState<string>("grid");
+  const [logs, setLogs] = useState<string[]>([]);
+  const [priceHistory, setPriceHistory] = useState<PriceData[]>([]);
+  const [activeOrders, setActiveOrders] = useState<Order[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const strategies = [
     { id: "grid", label: "Grid Trading" },
-    // Add more later: { id: "arbitrage", label: "Arbitrage" }
+    // Future: { id: "arbitrage", label: "Arbitrage" }
   ];
+
+  const log = (message: string) => {
+    setLogs((prev) => [
+      ...prev.slice(-50),
+      `[${new Date().toISOString()}] ${message}`,
+    ]);
+  };
+
+  const updatePriceHistory = (price: number) => {
+    setPriceHistory((prev) => [
+      ...prev.slice(-19), // Last 20 points
+      { time: new Date().toLocaleTimeString(), price },
+    ]);
+  };
 
   const renderStrategyContent = () => {
     switch (strategy) {
       case "grid":
         return (
-          <div>
-            <p className="text-gray-500">Grid Trading Bot - Coming soon...</p>
-            {/* Grid bot UI/logic goes here */}
-          </div>
+          <GridBot
+            apiKey={apiKey}
+            apiSecret={apiSecret}
+            log={log}
+            updatePriceHistory={updatePriceHistory}
+            setActiveOrders={setActiveOrders}
+            setError={setError}
+          />
         );
       default:
-        return null;
+        return <p className="text-gray-500">Select a strategy to begin.</p>;
     }
+  };
+
+  const chartData = {
+    labels: priceHistory.map((data) => data.time),
+    datasets: [
+      {
+        label: "Price (USDT)",
+        data: priceHistory.map((data) => data.price),
+        borderColor: "rgba(75, 192, 192, 1)",
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
+        fill: true,
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { title: { display: true, text: "Time" } },
+      y: { title: { display: true, text: "Price (USDT)" } },
+    },
   };
 
   return (
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-4">Binance Trading Bot</h2>
       {apiKey && apiSecret ? (
-        <div>
-          <p className="text-sm">API Key: {apiKey.slice(0, 8)}...</p>
-          <p className="text-sm">API Secret: {apiSecret.slice(0, 8)}...</p>
-          <div className="mt-4">
-            <label className="text-sm font-medium mr-2">Select Strategy:</label>
+        <div className="space-y-6">
+          <div className="flex items-center space-x-4">
+            <p className="text-sm">API Key: {apiKey.slice(0, 8)}...</p>
+            <p className="text-sm">API Secret: {apiSecret.slice(0, 8)}...</p>
+            <label className="text-sm font-medium">Strategy:</label>
             <select
               className="select select-bordered w-48"
               value={strategy}
@@ -45,7 +123,41 @@ export default function Cex() {
               ))}
             </select>
           </div>
-          <div className="mt-4">{renderStrategyContent()}</div>
+          {error && <p className="text-red-500">{error}</p>}
+          {renderStrategyContent()}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-md font-medium mb-2">Price Trend</h4>
+              <div className="h-64">
+                <Line data={chartData} options={chartOptions} />
+              </div>
+            </div>
+            <div>
+              <h4 className="text-md font-medium mb-2">Active Orders</h4>
+              <div className="max-h-64 overflow-y-auto bg-gray-100 p-2 rounded">
+                {activeOrders.length === 0 ? (
+                  <p className="text-xs text-gray-500">No active orders</p>
+                ) : (
+                  activeOrders.map((order) => (
+                    <p key={order.orderId} className="text-xs text-gray-700">
+                      Order ID: {order.orderId}, Price: $
+                      {order.price.toFixed(4)}, Quantity: {order.quantity}
+                    </p>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 className="text-md font-medium mb-2">Activity Log</h4>
+            <div className="max-h-64 overflow-y-auto bg-gray-100 p-2 rounded">
+              {logs.map((logEntry, index) => (
+                <p key={index} className="text-xs text-gray-700">
+                  {logEntry}
+                </p>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <p className="text-gray-500">

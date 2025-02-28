@@ -18,12 +18,11 @@ export default function GridBot({
   const [intervalMs, setIntervalMs] = useState(2 * 60 * 1000);
   const [isRunning, setIsRunning] = useState(false);
   const [noBuys, setNoBuys] = useState(false);
-  const [errorCount, setErrorCount] = useState(0); // Track failures
+  const [errorCount, setErrorCount] = useState(0);
+  const [isPolling, setIsPolling] = useState(false);
 
   useEffect(() => {
-    if (!apiKey) return;
-
-    let intervalId: NodeJS.Timeout;
+    if (!apiKey || isPolling) return;
 
     const fetchState = async () => {
       try {
@@ -43,26 +42,32 @@ export default function GridBot({
           setIsRunning(state.is_running);
           logs.forEach((l: { message: string }) => log(l.message));
           setActiveOrders(activeOrders);
-          setErrorCount(0); // Reset on success
+          setErrorCount(0);
         }
       } catch (err) {
         const errorMsg = (err as Error).message;
         setError(errorMsg);
         log(`Fetch state error: ${errorMsg}`);
-        setErrorCount((prev) => prev + 1);
-        if (errorCount >= 5) {
-          // Stop after 5 failures
-          clearInterval(intervalId);
-          log("Stopped polling due to repeated failures");
-        }
+        setErrorCount((prev) => {
+          const newCount = prev + 1;
+          if (newCount >= 5) {
+            setIsPolling(false);
+            log("Stopped polling due to repeated failures");
+          }
+          return newCount;
+        });
       }
     };
 
-    fetchState(); // Initial fetch
-    intervalId = setInterval(fetchState, 30000); // 30s instead of 5s
+    fetchState();
+    setIsPolling(true);
+    const intervalId = setInterval(fetchState, 30000); // 30s poll
 
-    return () => clearInterval(intervalId);
-  }, [apiKey, log, setActiveOrders, setError, errorCount]);
+    return () => {
+      clearInterval(intervalId);
+      setIsPolling(false);
+    };
+  }, [apiKey, log, setActiveOrders, setError]);
 
   const handleToggleBot = async (action: "start" | "stop") => {
     if (!apiKey || !apiSecret) return;

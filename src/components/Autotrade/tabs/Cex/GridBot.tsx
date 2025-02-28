@@ -1,202 +1,77 @@
 import React, { useState, useEffect } from "react";
-import { AxiosError } from "axios";
-import {
-  getCurrentPrice,
-  getTradingPairInfo,
-  adjustQuantity,
-  adjustPrice,
-  isValidNotional,
-  fetchActiveOrders,
-  placeSpotOrder,
-  checkOrderStatus,
-} from "../../../../lib/binanceApi"; // Adjust path
+import { useBinance } from "../../../../context/BinanceContext"; // Adjust path
+import { GridBotProps } from "../../../../types/gridBot"; // Adjust path
 
-interface GridBotProps {
-  apiKey: string | null;
-  apiSecret: string | null;
-  log: (message: string) => void;
-  updatePriceHistory: (price: number) => void;
-  setActiveOrders: React.Dispatch<React.SetStateAction<Order[]>>;
-  setError: React.Dispatch<React.SetStateAction<string | null>>;
-}
-
-interface BinanceError {
-  code?: number;
-  msg?: string;
-}
-
-interface Order {
-  orderId: number;
-  price: number;
-  quantity: number;
-}
+const BOT_SERVER_URL = process.env.BOT_SERVER_URL; // Fallback for local dev
 
 export default function GridBot({
-  apiKey,
-  apiSecret,
   log,
   updatePriceHistory,
   setActiveOrders,
   setError,
 }: GridBotProps) {
+  const { apiKey, apiSecret } = useBinance();
   const [symbol, setSymbol] = useState("DOGEUSDT");
   const [investment, setInvestment] = useState(2);
   const [percentageDrop, setPercentageDrop] = useState(0.6);
   const [percentageRise, setPercentageRise] = useState(1.2);
-  const [intervalMs, setIntervalMs] = useState(2 * 60 * 1000); // 2 min
+  const [intervalMs, setIntervalMs] = useState(2 * 60 * 1000);
   const [isRunning, setIsRunning] = useState(false);
+  const [noBuys, setNoBuys] = useState(false);
 
   useEffect(() => {
-    if (!apiKey || !apiSecret || !isRunning) return;
+    if (!apiKey) return;
 
-    const startGridBot = async () => {
-      if (!apiKey || !apiSecret) return; // Type guard for TS
-      log(
-        `Starting GridBot for ${symbol}. Monitoring for a ${percentageDrop}% drop and ${percentageRise}% rise...`
-      );
-      let basePrice: number;
-      let activeOrders: Order[] = [];
-
+    const fetchState = async () => {
       try {
-        basePrice = await getCurrentPrice(symbol);
-        log(`Base price set to $${basePrice}`);
-        activeOrders = await fetchActiveOrders(symbol, apiKey, apiSecret);
-        setActiveOrders(activeOrders);
-        log(`Fetched ${activeOrders.length} active orders`);
-        updatePriceHistory(basePrice);
-      } catch (err) {
-        const axiosError = err as AxiosError<BinanceError>;
-        const errorMessage =
-          axiosError.response?.data?.msg ||
-          axiosError.message ||
-          "Unknown error";
-        setError(errorMessage);
-        log(`Error initializing: ${errorMessage}`);
-        setIsRunning(false);
-        return;
-      }
-
-      const { minQty, stepSize, tickSize, minPrice, minNotional } =
-        await getTradingPairInfo(symbol);
-
-      const interval = setInterval(async () => {
-        try {
-          const currentPrice = await getCurrentPrice(symbol);
-          updatePriceHistory(currentPrice);
-          const priceDrop = ((basePrice - currentPrice) / basePrice) * 100;
-          const priceRise = ((currentPrice - basePrice) / basePrice) * 100;
-          log(
-            `Current price: $${currentPrice}, Drop: ${priceDrop.toFixed(
-              2
-            )}%, Rise: ${priceRise.toFixed(2)}%`
-          );
-
-          for (let i = activeOrders.length - 1; i >= 0; i--) {
-            const order = activeOrders[i];
-            const orderStatus = await checkOrderStatus(
-              symbol,
-              order.orderId,
-              apiKey,
-              apiSecret
-            );
-            if (orderStatus.status === "FILLED") {
-              log(
-                `[FILLED] Buy order ${order.orderId} filled for ${order.quantity} at $${order.price}`
-              );
-              activeOrders.splice(i, 1);
-              const sellPrice = adjustPrice(
-                order.price * 1.03012,
-                tickSize,
-                minPrice
-              );
-              const sellOrder = await placeSpotOrder(
-                symbol,
-                "SELL",
-                order.quantity,
-                sellPrice,
-                apiKey,
-                apiSecret
-              );
-              log(
-                `[SELL ORDER PLACED] Order ID: ${
-                  sellOrder.orderId
-                }, Quantity: ${
-                  sellOrder.quantity
-                }, Sell Price: $${sellPrice.toFixed(4)}`
-              );
-            }
-          }
-          setActiveOrders([...activeOrders]);
-
-          if (priceDrop >= percentageDrop) {
-            log(
-              `[ALERT] Price dropped by ${priceDrop.toFixed(
-                2
-              )}% to $${currentPrice}. Placing buy order...`
-            );
-            let quantity = adjustQuantity(
-              investment / currentPrice,
-              stepSize,
-              minQty
-            );
-            let price = adjustPrice(currentPrice * 0.99, tickSize, minPrice);
-            if (isValidNotional(quantity, price, minNotional)) {
-              const buyOrder = await placeSpotOrder(
-                symbol,
-                "BUY",
-                quantity,
-                price,
-                apiKey,
-                apiSecret
-              );
-              log(
-                `Buy order placed successfully. Order ID: ${buyOrder.orderId}`
-              );
-              activeOrders.push({
-                orderId: buyOrder.orderId,
-                quantity: buyOrder.quantity,
-                price,
-              });
-              basePrice = currentPrice;
-            } else {
-              log(
-                `Order notional value too low (min: ${minNotional}). Skipping order.`
-              );
-            }
-          } else if (priceRise >= percentageRise) {
-            log(
-              `[INFO] Price rose by ${priceRise.toFixed(
-                2
-              )}% to $${currentPrice}. Updating base price...`
-            );
-            basePrice = currentPrice;
-          }
-        } catch (err) {
-          const axiosError = err as AxiosError<BinanceError>;
-          const errorMessage =
-            axiosError.response?.data?.msg ||
-            axiosError.message ||
-            "Unknown error";
-          setError(errorMessage);
-          log(`Error during monitoring: ${errorMessage}`);
-          setIsRunning(false);
+        const response = await fetch(
+          `${BOT_SERVER_URL}/status?wallet=${apiKey}`
+        );
+        const { state, logs, activeOrders } = await response.json();
+        if (state) {
+          setSymbol(state.symbol);
+          setInvestment(state.investment);
+          setPercentageDrop(state.percentage_drop);
+          setPercentageRise(state.percentage_rise);
+          setIntervalMs(state.interval_ms);
+          setIsRunning(state.is_running);
+          logs.forEach((l: { message: string }) => log(l.message));
+          setActiveOrders(activeOrders);
         }
-      }, intervalMs);
-
-      return () => clearInterval(interval);
+      } catch (err) {
+        setError((err as Error).message);
+      }
     };
+    fetchState();
 
-    startGridBot();
-  }, [
-    isRunning,
-    apiKey,
-    apiSecret,
-    symbol,
-    percentageDrop,
-    percentageRise,
-    investment,
-    intervalMs,
-  ]);
+    const interval = setInterval(fetchState, 5000); // Poll every 5s
+    return () => clearInterval(interval);
+  }, [apiKey, log, setActiveOrders, setError]);
+
+  const handleToggleBot = async (action: "start" | "stop") => {
+    if (!apiKey || !apiSecret) return;
+    try {
+      const response = await fetch(`${BOT_SERVER_URL}/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wallet: apiKey,
+          apiKey,
+          apiSecret,
+          symbol,
+          investment,
+          percentageDrop,
+          percentageRise,
+          intervalMs,
+          noBuys,
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to ${action} bot`);
+      setIsRunning(action === "start");
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -251,13 +126,33 @@ export default function GridBot({
             step="0.1"
           />
         </div>
+        <div>
+          <label className="text-sm">No Buys:</label>
+          <input
+            type="checkbox"
+            className="checkbox"
+            checked={noBuys}
+            onChange={(e) => setNoBuys(e.target.checked)}
+            disabled={isRunning}
+          />
+        </div>
       </div>
-      <button
-        className={`btn ${isRunning ? "btn-error" : "btn-primary"}`}
-        onClick={() => setIsRunning(!isRunning)}
-      >
-        {isRunning ? "Stop Bot" : "Start Bot"}
-      </button>
+      <div className="flex space-x-4">
+        <button
+          className="btn btn-primary"
+          onClick={() => handleToggleBot("start")}
+          disabled={isRunning}
+        >
+          Start Bot
+        </button>
+        <button
+          className="btn btn-error"
+          onClick={() => handleToggleBot("stop")}
+          disabled={!isRunning}
+        >
+          Stop Bot
+        </button>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useBinance } from "../../../../context/BinanceContext"; // Adjust path
 import GridBot from "./GridBot";
 import { Line } from "react-chartjs-2";
@@ -11,9 +11,10 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from "chart.js";
+import { Order, PriceData } from "../../../../types/gridBot"; // Adjust path
 
-// Register ChartJS components
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -21,19 +22,9 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
-
-interface Order {
-  orderId: number;
-  price: number;
-  quantity: number;
-}
-
-interface PriceData {
-  time: string;
-  price: number;
-}
 
 export default function Cex() {
   const { apiKey, apiSecret } = useBinance();
@@ -43,10 +34,7 @@ export default function Cex() {
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const strategies = [
-    { id: "grid", label: "Grid Trading" },
-    // Future: { id: "arbitrage", label: "Arbitrage" }
-  ];
+  const strategies = [{ id: "grid", label: "Grid Trading" }];
 
   const log = (message: string) => {
     setLogs((prev) => [
@@ -57,7 +45,7 @@ export default function Cex() {
 
   const updatePriceHistory = (price: number) => {
     setPriceHistory((prev) => [
-      ...prev.slice(-19), // Last 20 points
+      ...prev.slice(-19),
       { time: new Date().toLocaleTimeString(), price },
     ]);
   };

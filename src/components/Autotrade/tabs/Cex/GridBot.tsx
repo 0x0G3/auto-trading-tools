@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useBinance } from "../../../../context/BinanceContext";
 import { GridBotProps } from "../../../../types/gridBot";
 
-const BOT_SERVER_URL = "http://143.198.74.242:3005"; // Droplet IP
+// Updated to HTTPS with subdomain and port
+const BOT_SERVER_URL = "https://bot.auto-trading-tools.com:3005";
 
 export default function GridBot({
   log,

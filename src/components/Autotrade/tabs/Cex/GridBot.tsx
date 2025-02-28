@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useBinance } from "../../../../context/BinanceContext"; // Adjust path
-import { GridBotProps } from "../../../../types/gridBot"; // Adjust path
+import { useBinance } from "../../../../context/BinanceContext";
+import { GridBotProps } from "../../../../types/gridBot";
 
-const BOT_SERVER_URL = process.env.BOT_SERVER_URL; // Fallback for local dev
+const BOT_SERVER_URL = "http://143.198.74.242:3005"; // Droplet IP
 
 export default function GridBot({
   log,
-  updatePriceHistory,
+
   setActiveOrders,
   setError,
 }: GridBotProps) {
@@ -27,6 +27,9 @@ export default function GridBot({
         const response = await fetch(
           `${BOT_SERVER_URL}/status?wallet=${apiKey}`
         );
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const { state, logs, activeOrders } = await response.json();
         if (state) {
           setSymbol(state.symbol);
@@ -40,11 +43,12 @@ export default function GridBot({
         }
       } catch (err) {
         setError((err as Error).message);
+        log(`Fetch state error: ${(err as Error).message}`);
       }
     };
     fetchState();
 
-    const interval = setInterval(fetchState, 5000); // Poll every 5s
+    const interval = setInterval(fetchState, 5000);
     return () => clearInterval(interval);
   }, [apiKey, log, setActiveOrders, setError]);
 
@@ -70,6 +74,7 @@ export default function GridBot({
       setIsRunning(action === "start");
     } catch (err) {
       setError((err as Error).message);
+      log(`Toggle bot error: ${(err as Error).message}`);
     }
   };
 

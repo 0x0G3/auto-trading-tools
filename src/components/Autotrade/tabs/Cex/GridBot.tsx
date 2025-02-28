@@ -6,7 +6,7 @@ const BOT_SERVER_URL = "http://143.198.74.242:3005"; // Droplet IP
 
 export default function GridBot({
   log,
-
+  updatePriceHistory,
   setActiveOrders,
   setError,
 }: GridBotProps) {
@@ -18,9 +18,12 @@ export default function GridBot({
   const [intervalMs, setIntervalMs] = useState(2 * 60 * 1000);
   const [isRunning, setIsRunning] = useState(false);
   const [noBuys, setNoBuys] = useState(false);
+  const [errorCount, setErrorCount] = useState(0); // Track failures
 
   useEffect(() => {
     if (!apiKey) return;
+
+    let intervalId: NodeJS.Timeout;
 
     const fetchState = async () => {
       try {
@@ -40,17 +43,26 @@ export default function GridBot({
           setIsRunning(state.is_running);
           logs.forEach((l: { message: string }) => log(l.message));
           setActiveOrders(activeOrders);
+          setErrorCount(0); // Reset on success
         }
       } catch (err) {
-        setError((err as Error).message);
-        log(`Fetch state error: ${(err as Error).message}`);
+        const errorMsg = (err as Error).message;
+        setError(errorMsg);
+        log(`Fetch state error: ${errorMsg}`);
+        setErrorCount((prev) => prev + 1);
+        if (errorCount >= 5) {
+          // Stop after 5 failures
+          clearInterval(intervalId);
+          log("Stopped polling due to repeated failures");
+        }
       }
     };
-    fetchState();
 
-    const interval = setInterval(fetchState, 5000);
-    return () => clearInterval(interval);
-  }, [apiKey, log, setActiveOrders, setError]);
+    fetchState(); // Initial fetch
+    intervalId = setInterval(fetchState, 30000); // 30s instead of 5s
+
+    return () => clearInterval(intervalId);
+  }, [apiKey, log, setActiveOrders, setError, errorCount]);
 
   const handleToggleBot = async (action: "start" | "stop") => {
     if (!apiKey || !apiSecret) return;

@@ -3,8 +3,8 @@ import { useBinance } from "../../../../context/BinanceContext";
 import { GridBotProps } from "../../../../types/gridBot";
 
 // Updated to HTTPS with subdomain and port
-const BOT_SERVER_URL = "https://bot.auto-trading-tools.com:3005";
 
+const BOT_SERVER_URL = "https://bot.auto-trading-tools.com:3005";
 export default function GridBot({
   log,
   updatePriceHistory,

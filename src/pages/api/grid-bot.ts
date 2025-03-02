@@ -1,16 +1,9 @@
-import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { AxiosError } from "axios";
-import {
-  getCurrentPrice,
-  getTradingPairInfo,
-  adjustQuantity,
-  adjustPrice,
-  isValidNotional,
-  fetchActiveOrders,
-  placeSpotOrder,
-  checkOrderStatus,
-} from "../../lib/binanceApi";
+import express, { RequestHandler } from "express";
+
+const app = express();
+app.use(express.json());
 
 const supabase = createClient(
   process.env.SUPABASE_URL as string,
@@ -28,6 +21,7 @@ interface BotState {
   intervalMs: number;
   active_orders: Order[];
   base_price: number | null;
+  is_running: boolean;
 }
 
 interface BinanceError {
@@ -39,6 +33,75 @@ interface Order {
   orderId: number;
   price: number;
   quantity: number;
+}
+
+// Placeholder for Binance API functions (implement these as needed)
+async function getCurrentPrice(symbol: string): Promise<number> {
+  // Simulate fetching price; replace with actual Binance API call
+  return 0;
+}
+
+async function getTradingPairInfo(symbol: string): Promise<{
+  minQty: number;
+  stepSize: number;
+  tickSize: number;
+  minPrice: number;
+  minNotional: number;
+}> {
+  // Simulate fetching trading pair info
+  return { minQty: 0, stepSize: 0, tickSize: 0, minPrice: 0, minNotional: 0 };
+}
+
+function adjustQuantity(
+  quantity: number,
+  stepSize: number,
+  minQty: number
+): number {
+  return quantity; // Placeholder
+}
+
+function adjustPrice(
+  price: number,
+  tickSize: number,
+  minPrice: number
+): number {
+  return price; // Placeholder
+}
+
+function isValidNotional(
+  quantity: number,
+  price: number,
+  minNotional: number
+): boolean {
+  return true; // Placeholder
+}
+
+async function fetchActiveOrders(
+  symbol: string,
+  apiKey: string,
+  apiSecret: string
+): Promise<Order[]> {
+  return []; // Placeholder
+}
+
+async function placeSpotOrder(
+  symbol: string,
+  side: "BUY" | "SELL",
+  quantity: number,
+  price: number,
+  apiKey: string,
+  apiSecret: string
+): Promise<Order> {
+  return { orderId: 0, price, quantity }; // Placeholder
+}
+
+async function checkOrderStatus(
+  symbol: string,
+  orderId: number,
+  apiKey: string,
+  apiSecret: string
+): Promise<{ status: string }> {
+  return { status: "FILLED" }; // Placeholder
 }
 
 async function log(wallet: string, message: string) {
@@ -77,8 +140,8 @@ async function runBot(wallet: string) {
     active_orders,
     base_price,
   } = data as BotState;
-  if (!apiKey || !apiSecret) {
-    log(wallet, "Missing API credentials in state—cannot proceed");
+  if (!apiKey || !apiSecret || !symbol) {
+    log(wallet, "Missing required state parameters");
     return;
   }
   console.log(
@@ -218,84 +281,149 @@ async function runBot(wallet: string) {
   }
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const { wallet } = req.query as { wallet?: string };
+// Route handlers
+const startHandler: RequestHandler = async (req, res) => {
+  const {
+    wallet,
+    apiKey,
+    apiSecret,
+    symbols,
+    investment,
+    percentageDrop,
+    percentageRise,
+    intervalMs,
+    noBuys,
+  } = req.body;
 
-  if (req.method === "POST") {
-    const {
+  if (!wallet || !apiKey || !apiSecret || !symbols || !investment) {
+    console.log("Missing parameters for start:", {
+      wallet,
       apiKey,
       apiSecret,
-      symbol,
+      symbols,
       investment,
-      percentageDrop,
-      percentageRise,
-      intervalMs,
-      action,
-    } = req.body;
-    if (!wallet || !apiKey || !apiSecret) {
-      console.log("Missing parameters:", { wallet, apiKey, apiSecret });
-      return res.status(400).json({ error: "Missing required parameters" });
-    }
-
-    if (action === "start") {
-      console.log(`Starting bot for wallet: ${wallet}`);
-      const { error } = await supabase.from("grid_bot_state").upsert({
-        wallet,
-        is_running: true,
-        symbol,
-        investment,
-        percentage_drop: percentageDrop,
-        percentage_rise: percentageRise,
-        interval_ms: intervalMs,
-        active_orders: [],
-        base_price: null,
-        apiKey,
-        apiSecret,
-      });
-      if (error) {
-        console.error(`Supabase upsert error: ${error.message}`);
-        return res.status(500).json({ error: "Failed to update bot state" });
-      }
-      runBot(wallet);
-      return res.status(200).json({ message: "Bot started" });
-    } else if (action === "stop") {
-      console.log(`Stopping bot for wallet: ${wallet}`);
-      const { error } = await supabase
-        .from("grid_bot_state")
-        .update({ is_running: false })
-        .eq("wallet", wallet);
-      if (error) {
-        console.error(`Supabase update error: ${error.message}`);
-        return res.status(500).json({ error: "Failed to stop bot" });
-      }
-      return res.status(200).json({ message: "Bot stopped" });
-    }
-    console.log("Invalid action:", action);
-    return res.status(400).json({ error: "Invalid action" });
+    });
+    res.status(400).json({ error: "Missing required parameters" });
+    return;
   }
 
-  if (req.method === "GET") {
-    if (!wallet) return res.status(400).json({ error: "Wallet required" });
-    const { data } = await supabase
-      .from("grid_bot_state")
-      .select("*")
-      .eq("wallet", wallet)
-      .single();
-    const logs = await supabase
-      .from("grid_bot_logs")
-      .select("*")
-      .eq("wallet", wallet)
-      .order("timestamp", { ascending: false })
-      .limit(50);
-    console.log(`GET state for ${wallet}:`, data, "Logs:", logs.data);
-    if (data?.is_running) {
-      runBot(wallet);
-    }
-    return res.status(200).json({ state: data, logs: logs.data });
+  console.log(`Starting bot for wallet: ${wallet}`);
+  const { error } = await supabase.from("grid_bot_state").upsert({
+    wallet,
+    is_running: true,
+    symbol: symbols[0], // Simplified for single ticker
+    investment,
+    percentage_drop: percentageDrop,
+    percentage_rise: percentageRise,
+    interval_ms: intervalMs,
+    active_orders: [],
+    base_price: null,
+    apiKey,
+    apiSecret,
+  });
+  if (error) {
+    console.error(`Supabase upsert error: ${error.message}`);
+    res.status(500).json({ error: "Failed to update bot state" });
+    return;
   }
 
-  return res.status(405).json({ error: "Method not allowed" });
-}
+  runBot(wallet);
+  res.status(200).json({ message: "Bot started" });
+};
+
+const stopHandler: RequestHandler = async (req, res) => {
+  const { wallet } = req.body;
+
+  if (!wallet) {
+    console.log("Missing wallet for stop");
+    res.status(400).json({ error: "Wallet required" });
+    return;
+  }
+
+  console.log(`Stopping bot for wallet: ${wallet}`);
+  const { data, error: fetchError } = await supabase
+    .from("grid_bot_state")
+    .select("is_running")
+    .eq("wallet", wallet)
+    .single();
+
+  if (fetchError || !data) {
+    console.log(
+      `No bot state found for wallet: ${wallet}, creating stopped state`
+    );
+    await supabase.from("grid_bot_state").upsert({
+      wallet,
+      is_running: false,
+      symbol: null,
+      investment: 0,
+      percentage_drop: 0,
+      percentage_rise: 0,
+      interval_ms: 0,
+      active_orders: [],
+      base_price: null,
+      apiKey: "",
+      apiSecret: "",
+    });
+    res.status(200).json({ message: "No bot running, state reset" });
+    return;
+  }
+
+  if (!data.is_running) {
+    console.log(`Bot already stopped for wallet: ${wallet}`);
+    res.status(200).json({ message: "Bot already stopped" });
+    return;
+  }
+
+  const { error } = await supabase
+    .from("grid_bot_state")
+    .update({ is_running: false })
+    .eq("wallet", wallet);
+  if (error) {
+    console.error(`Supabase update error: ${error.message}`);
+    res.status(500).json({ error: "Failed to stop bot" });
+    return;
+  }
+
+  res.status(200).json({ message: "Bot stopped" });
+};
+
+const statusHandler: RequestHandler = async (req, res) => {
+  const wallet = req.query.wallet as string;
+  if (!wallet) {
+    res.status(400).json({ error: "Wallet required" });
+    return;
+  }
+
+  const { data } = await supabase
+    .from("grid_bot_state")
+    .select("*")
+    .eq("wallet", wallet)
+    .single();
+  const logs = await supabase
+    .from("grid_bot_logs")
+    .select("*")
+    .eq("wallet", wallet)
+    .order("timestamp", { ascending: false })
+    .limit(50);
+
+  console.log(`GET state for ${wallet}:`, data, "Logs:", logs.data);
+  if (data?.is_running) {
+    runBot(wallet);
+  }
+  res.status(200).json({
+    states: [data],
+    logs: logs.data,
+    activeOrders: data?.active_orders || [],
+  });
+};
+
+// Assign handlers to routes
+app.post("/start", startHandler);
+app.post("/stop", stopHandler);
+app.get("/status", statusHandler);
+
+// Start the server
+const PORT = process.env.PORT || 3005;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

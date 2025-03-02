@@ -12,7 +12,7 @@ export interface Order {
   orderId: number;
   price: number;
   quantity: number;
-  symbol: string; // Added to track the token pair for each order
+  symbol: string; // Tracks the trading pair for each order
 }
 
 export interface PriceData {

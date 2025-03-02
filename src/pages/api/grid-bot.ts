@@ -144,12 +144,7 @@ async function runBot(wallet: string) {
     log(wallet, "Missing required state parameters");
     return;
   }
-  console.log(
-    `Running bot with apiKey: ${apiKey.slice(
-      0,
-      8
-    )}..., apiSecret: ${apiSecret.slice(0, 8)}...`
-  );
+
   let basePrice: number = base_price || 0;
   let activeOrders: Order[] = active_orders || [];
 

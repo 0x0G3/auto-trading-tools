@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useBinance } from "../../../../context/BinanceContext"; // Adjust path
+import { useBinance } from "../../../../context/BinanceContext";
 import GridBot from "./GridBot";
 import { Line } from "react-chartjs-2";
 import {
@@ -13,7 +13,7 @@ import {
   Legend,
   Filler,
 } from "chart.js";
-import { Order, PriceData } from "../../../../types/gridBot"; // Adjust path
+import { Order, PriceData } from "../../../../types/gridBot";
 
 ChartJS.register(
   CategoryScale,
@@ -38,7 +38,7 @@ export default function Cex() {
 
   const log = (message: string) => {
     setLogs((prev) => [
-      ...prev.slice(-50),
+      ...prev.slice(-100), // Adjusted to 100
       `[${new Date().toISOString()}] ${message}`,
     ]);
   };
@@ -139,11 +139,14 @@ export default function Cex() {
           <div>
             <h4 className="text-md font-medium mb-2">Activity Log</h4>
             <div className="max-h-64 overflow-y-auto bg-gray-100 p-2 rounded">
-              {logs.map((logEntry, index) => (
-                <p key={index} className="text-xs text-gray-700">
-                  {logEntry}
-                </p>
-              ))}
+              {logs
+                .slice()
+                .reverse()
+                .map((logEntry, index) => (
+                  <p key={index} className="text-xs text-gray-700">
+                    {logEntry}
+                  </p>
+                ))}
             </div>
           </div>
         </div>

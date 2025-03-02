@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useBinance } from "../../../../context/BinanceContext";
-import { GridBotProps } from "../../../../types/gridBot";
-
-// Updated to HTTPS with subdomain and port
+import {
+  GridBotProps,
+  BotState,
+  BotLog,
+  ActiveOrderResponse,
+  StatusResponse,
+  Order,
+} from "../../../../types/gridBot";
 
 const BOT_SERVER_URL = "https://bot.auto-trading-tools.com:3005";
+
 export default function GridBot({
   log,
   updatePriceHistory,
@@ -12,15 +18,17 @@ export default function GridBot({
   setError,
 }: GridBotProps) {
   const { apiKey, apiSecret } = useBinance();
-  const [symbol, setSymbol] = useState("DOGEUSDT");
-  const [investment, setInvestment] = useState(2);
-  const [percentageDrop, setPercentageDrop] = useState(0.6);
-  const [percentageRise, setPercentageRise] = useState(1.2);
-  const [intervalMs, setIntervalMs] = useState(2 * 60 * 1000);
-  const [isRunning, setIsRunning] = useState(false);
-  const [noBuys, setNoBuys] = useState(false);
-  const [errorCount, setErrorCount] = useState(0);
-  const [isPolling, setIsPolling] = useState(false);
+  const [symbols, setSymbols] = useState<string[]>(["DOGEUSDT"]);
+  const [investment, setInvestment] = useState<number>(2);
+  const [percentageDrop, setPercentageDrop] = useState<number>(0.6);
+  const [percentageRise, setPercentageRise] = useState<number>(1.2);
+  const [intervalMs, setIntervalMs] = useState<number>(2 * 60 * 1000);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const [noBuys, setNoBuys] = useState<boolean>(false);
+  const [errorCount, setErrorCount] = useState<number>(0);
+  const [isPolling, setIsPolling] = useState<boolean>(false);
+
+  const availableSymbols = ["DOGEUSDT", "BTCUSDT", "ETHUSDT", "XRPUSDT"];
 
   useEffect(() => {
     if (!apiKey || isPolling) return;
@@ -33,16 +41,25 @@ export default function GridBot({
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const { state, logs, activeOrders } = await response.json();
-        if (state) {
-          setSymbol(state.symbol);
-          setInvestment(state.investment);
-          setPercentageDrop(state.percentage_drop);
-          setPercentageRise(state.percentage_rise);
-          setIntervalMs(state.interval_ms);
-          setIsRunning(state.is_running);
-          logs.forEach((l: { message: string }) => log(l.message));
-          setActiveOrders(activeOrders);
+        const { states, logs, activeOrders }: StatusResponse =
+          await response.json();
+
+        if (states && states.length > 0) {
+          const runningSymbols = states
+            .filter((state: BotState) => state.is_running)
+            .map((state: BotState) => state.symbol);
+          setSymbols(runningSymbols.length > 0 ? runningSymbols : ["DOGEUSDT"]);
+          setInvestment(states[0].investment || 2);
+          setPercentageDrop(states[0].percentage_drop || 0.6);
+          setPercentageRise(states[0].percentage_rise || 1.2);
+          setIntervalMs(states[0].interval_ms || 2 * 60 * 1000);
+          setIsRunning(runningSymbols.length > 0);
+          logs.forEach((l: BotLog) => log(l.message));
+          const allOrders: Order[] = activeOrders.flatMap(
+            (bot: ActiveOrderResponse) =>
+              bot.orders.map((order) => ({ ...order, symbol: bot.symbol }))
+          );
+          setActiveOrders(allOrders);
           setErrorCount(0);
         }
       } catch (err) {
@@ -62,7 +79,7 @@ export default function GridBot({
 
     fetchState();
     setIsPolling(true);
-    const intervalId = setInterval(fetchState, 30000); // 30s poll
+    const intervalId = setInterval(fetchState, 30000);
 
     return () => {
       clearInterval(intervalId);
@@ -80,7 +97,8 @@ export default function GridBot({
           wallet: apiKey,
           apiKey,
           apiSecret,
-          symbol,
+          symbols: action === "start" ? symbols : undefined,
+          symbol: action === "stop" ? symbols : undefined, // Backward compatibility
           investment,
           percentageDrop,
           percentageRise,
@@ -96,22 +114,38 @@ export default function GridBot({
     }
   };
 
+  const handleSymbolChange = (selectedSymbol: string) => {
+    setSymbols((prev) =>
+      prev.includes(selectedSymbol)
+        ? prev.filter((s) => s !== selectedSymbol)
+        : [...prev, selectedSymbol]
+    );
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex space-x-4">
-        <div>
-          <label className="text-sm">Symbol:</label>
-          <select
-            className="select select-bordered w-32"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            disabled={isRunning}
-          >
-            <option value="DOGEUSDT">DOGE/USDT</option>
-            <option value="BTCUSDT">BTC/USDT</option>
-            <option value="ETHUSDT">ETH/USDT</option>
-          </select>
+      <div className="flex flex-col space-y-2">
+        <label className="text-sm">Symbols:</label>
+        <div className="flex flex-wrap gap-4">
+          {availableSymbols.map((sym) => (
+            <div key={sym} className="flex items-center">
+              <input
+                type="checkbox"
+                id={sym}
+                value={sym}
+                checked={symbols.includes(sym)}
+                onChange={() => handleSymbolChange(sym)}
+                disabled={isRunning}
+                className="checkbox mr-2"
+              />
+              <label htmlFor={sym} className="text-sm">
+                {sym}
+              </label>
+            </div>
+          ))}
         </div>
+      </div>
+      <div className="flex space-x-4">
         <div>
           <label className="text-sm">Investment (USDT):</label>
           <input
@@ -164,16 +198,16 @@ export default function GridBot({
         <button
           className="btn btn-primary"
           onClick={() => handleToggleBot("start")}
-          disabled={isRunning}
+          disabled={isRunning || symbols.length === 0}
         >
-          Start Bot
+          Start Bot{symbols.length > 1 ? "s" : ""}
         </button>
         <button
           className="btn btn-error"
           onClick={() => handleToggleBot("stop")}
           disabled={!isRunning}
         >
-          Stop Bot
+          Stop Bot{symbols.length > 1 ? "s" : ""}
         </button>
       </div>
     </div>

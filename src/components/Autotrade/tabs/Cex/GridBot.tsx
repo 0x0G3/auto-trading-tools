@@ -44,6 +44,7 @@ export default function GridBot({
     "PEPEUSDT", // Pepe Cash
     "HBARUSDT", // Trump Coin
     "NEARUSDT", // Neo
+    "CROUSDT", // Crypto.com Coin
   ];
   useEffect(() => {
     if (!apiKey || isPolling) return;
@@ -56,18 +57,11 @@ export default function GridBot({
         if (!response.ok)
           throw new Error(`HTTP error! status: ${response.status}`);
         const { states, logs, activeOrders } = await response.json();
-        console.log("Fetch state response:", { states, logs, activeOrders });
 
         if (states && states.length > 0) {
           const runningSymbols = states
             .filter((state: BotState) => state.is_running)
             .map((state: BotState) => state.symbol);
-          console.log(
-            "Running symbols:",
-            runningSymbols,
-            "Setting isRunning:",
-            runningSymbols.length > 0
-          );
           setSymbols(runningSymbols.length > 0 ? runningSymbols : ["DOGEUSDT"]);
           setInvestment(states[0].investment || 2);
           setPercentageDrop(states[0].percentage_drop || 0.6);
@@ -82,7 +76,6 @@ export default function GridBot({
           setActiveOrders(allOrders);
           setErrorCount(0);
         } else {
-          console.log("No states found, setting isRunning to false");
           setIsRunning(false); // No running bots detected
           setSymbols(["DOGEUSDT"]); // Reset to default
         }
@@ -114,19 +107,6 @@ export default function GridBot({
   const handleToggleBot = async (action: "start" | "stop") => {
     if (!apiKey || !apiSecret) return;
     try {
-      console.log(`Sending ${action} request with body:`, {
-        wallet: apiKey,
-        apiKey,
-        apiSecret,
-        ...(action === "start" && {
-          symbols,
-          investment,
-          percentageDrop,
-          percentageRise,
-          intervalMs,
-          noBuys,
-        }),
-      });
       const response = await fetch(`${BOT_SERVER_URL}/${action}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

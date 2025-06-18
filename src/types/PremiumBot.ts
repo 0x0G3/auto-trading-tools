@@ -1,5 +1,5 @@
 export interface PremiumBotProps {
-  apiKey: string | null;
+  apiKey: string | null | undefined;
   apiSecret: string | null;
   log: (message: string) => void;
   updatePriceHistory: (price: number) => void;

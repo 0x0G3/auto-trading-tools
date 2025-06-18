@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useBinance } from "../../../../context/BinanceContext";
 import { GridBotProps } from "../../../../types/gridBot";
 
-const BOT_SERVER_URL = "https://bot.auto-trading-tools.com:3006/premium";
-
+// /home/grivas/tradingtools/auto-trading-tools/src/components/Autotrade/tabs/Cex/Smc-ict.tsx
+const BOT_SERVER_URL = "https://bot.auto-trading-tools.com:3006";
 interface SMC_ICTProps extends GridBotProps {
   symbol: string;
   setSymbol: React.Dispatch<React.SetStateAction<string>>;

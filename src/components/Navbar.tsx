@@ -29,18 +29,6 @@ export default function Navbar() {
               Meme
             </Link>
             <Link
-              href="#"
-              className="text-sm md:text-lg font-semibold hover:text-blue-500 transition duration-200"
-            >
-              New pair
-            </Link>
-            <Link
-              href="#"
-              className="text-sm md:text-lg font-semibold hover:text-blue-500 transition duration-200"
-            >
-              Trending
-            </Link>
-            <Link
               href="/auto-trade"
               className="text-sm md:text-lg font-semibold hover:text-blue-500 transition duration-200"
             >

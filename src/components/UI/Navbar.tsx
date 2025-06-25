@@ -17,10 +17,10 @@ export default function Navbar() {
 
   // Resources links for the Resources dropdown
   const resourcesLinks = [
-    { name: "Toolkits", href: "/toolkits" },
-    { name: "guides", href: "/screeners" },
-    { name: "data-resourses", href: "/backtesting" },
-    { name: "funding ", href: "/aibacktesting" },
+    { name: "support", href: "/support" },
+    { name: "guides", href: "/guides" },
+    { name: "data-resourses", href: "/dataresources" },
+    { name: "funding ", href: "/funding" },
   ];
 
   return (
@@ -28,13 +28,13 @@ export default function Navbar() {
       <div className="flex items-center justify-between mx-4 sm:mx-6 md:mx-8 lg:mx-12 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <Image
-            src="/logo.svg" // Replace with your logo path
+          {/* <Image
+            // src="/logo.svg" // Replace with your logo path
             className="h-8 w-auto"
             alt="YourBrand Logo"
             width={32}
             height={32}
-          />
+          /> */}
           <span className="ml-3 text-2xl font-semibold">YourBrand</span>
         </Link>
 

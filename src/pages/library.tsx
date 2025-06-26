@@ -1,7 +1,11 @@
 import type { NextPage } from "next";
 
 const library: NextPage = () => {
-  return <div id="follow-page">this is new</div>;
+  return (
+    <div id="libary">
+      <div></div>
+    </div>
+  );
 };
 
 export default library;

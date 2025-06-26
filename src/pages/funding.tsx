@@ -1,5 +1,10 @@
 import React from "react";
+import Funding from "../components/Resources/Funding";
 
 export default function funding() {
-  return <div>funding</div>;
+  return (
+    <div>
+      <Funding />
+    </div>
+  );
 }

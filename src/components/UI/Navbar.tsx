@@ -1,11 +1,15 @@
 import Link from "next/link";
-import Image from "next/image";
-import React, { useState } from "react";
+// import Image from "next/image";
+import React, { useState, useRef } from "react";
 
 export default function Navbar() {
   const [isFeaturesDropdownOpen, setIsFeaturesDropdownOpen] = useState(false);
   const [isResourcesDropdownOpen, setIsResourcesDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Refs to manage timeouts for dropdowns
+  const featuresTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resourcesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Feature links for the Features dropdown
   const featureLinks = [
@@ -17,11 +21,41 @@ export default function Navbar() {
 
   // Resources links for the Resources dropdown
   const resourcesLinks = [
-    { name: "support", href: "/support" },
-    { name: "guides", href: "/guides" },
-    { name: "data-resourses", href: "/dataresources" },
-    { name: "funding ", href: "/funding" },
+    { name: "Support", href: "/support" },
+    { name: "Guides", href: "/guides" },
+    { name: "Data Resources", href: "/dataresources" },
+    { name: "Funding", href: "/funding" },
   ];
+
+  // Handle mouse enter for Features dropdown
+  const handleFeaturesMouseEnter = () => {
+    if (featuresTimeoutRef.current) {
+      clearTimeout(featuresTimeoutRef.current);
+    }
+    setIsFeaturesDropdownOpen(true);
+  };
+
+  // Handle mouse leave for Features dropdown
+  const handleFeaturesMouseLeave = () => {
+    featuresTimeoutRef.current = setTimeout(() => {
+      setIsFeaturesDropdownOpen(false);
+    }, 300); // 300ms delay before closing
+  };
+
+  // Handle mouse enter for Resources dropdown
+  const handleResourcesMouseEnter = () => {
+    if (resourcesTimeoutRef.current) {
+      clearTimeout(resourcesTimeoutRef.current);
+    }
+    setIsResourcesDropdownOpen(true);
+  };
+
+  // Handle mouse leave for Resources dropdown
+  const handleResourcesMouseLeave = () => {
+    resourcesTimeoutRef.current = setTimeout(() => {
+      setIsResourcesDropdownOpen(false);
+    }, 300); // 300ms delay before closing
+  };
 
   return (
     <nav className="bg-gray-800 text-white w-full sticky top-0 z-50">
@@ -68,8 +102,8 @@ export default function Navbar() {
         <div className="hidden md:flex items-center space-x-6">
           <div
             className="relative"
-            onMouseEnter={() => setIsFeaturesDropdownOpen(true)}
-            onMouseLeave={() => setIsFeaturesDropdownOpen(false)}
+            onMouseEnter={handleFeaturesMouseEnter}
+            onMouseLeave={handleFeaturesMouseLeave}
           >
             <Link
               href="/features"
@@ -92,7 +126,11 @@ export default function Navbar() {
               </svg>
             </Link>
             {isFeaturesDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-2 animate-dropdown-open">
+              <div
+                className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-2 animate-dropdown-open"
+                onMouseEnter={handleFeaturesMouseEnter}
+                onMouseLeave={handleFeaturesMouseLeave}
+              >
                 {featureLinks.map((feature) => (
                   <Link
                     key={feature.href}
@@ -107,8 +145,8 @@ export default function Navbar() {
           </div>
           <div
             className="relative"
-            onMouseEnter={() => setIsResourcesDropdownOpen(true)}
-            onMouseLeave={() => setIsResourcesDropdownOpen(false)}
+            onMouseEnter={handleResourcesMouseEnter}
+            onMouseLeave={handleResourcesMouseLeave}
           >
             <Link
               href="/resources"
@@ -131,7 +169,11 @@ export default function Navbar() {
               </svg>
             </Link>
             {isResourcesDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-2 animate-dropdown-open">
+              <div
+                className="absolute right-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-2 animate-dropdown-open"
+                onMouseEnter={handleResourcesMouseEnter}
+                onMouseLeave={handleResourcesMouseLeave}
+              >
                 {resourcesLinks.map((resource) => (
                   <Link
                     key={resource.href}

@@ -8,7 +8,7 @@ Market Data Integration: Real-time stock/crypto market data via [API provider, e
 Automated Trading: Customizable trading bots with predefined strategies (e.g., moving average crossover, RSI-based trading).
 Portfolio Management: Track and manage your assets, view performance metrics, and historical trades.
 Responsive UI: Built with [e.g., React, Tailwind CSS] for a modern, mobile-friendly experience.
-Backend Services: RESTful API powered by [e.g., Node.js, Express, Python Flask] with a [e.g., MongoDB, PostgreSQL] database.
+Backend Services: RESTful API powered by [e.g., Node.js, Express ] with a [e.g., MongoDB, PostgreSQL] database.
 Security: HTTPS, data encryption, and secure API key storage.
 
 Tech Stack
@@ -16,7 +16,7 @@ Tech Stack
 Frontend: [e.g., React, Tailwind CSS, Axios for API calls]
 Backend: [e.g., Node.js with Express, ]
 Database: [e.g., MongoDB, PostgreSQL]
-APIs: [e.g., Alpha Vantage, Binance, or other market data providers]
+APIs: [e.g. Binance, or other market data providers]
 Other Tools: [e.g., Docker for containerization, WebSocket for real-time updates]
 
 License

@@ -5,7 +5,7 @@ import Aibacktesting from "./Aibacktesting";
 
 export default function InfoCards() {
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       <Toolkits />
       <Screeners />
       <Aibacktesting />

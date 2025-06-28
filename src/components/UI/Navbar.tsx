@@ -21,10 +21,11 @@ export default function Navbar() {
 
   // Resources links for the Resources dropdown
   const resourcesLinks = [
-    { name: "Support", href: "/support" },
-    { name: "Guides", href: "/guides" },
-    { name: "Data Resources", href: "/dataresources" },
-    { name: "Funding", href: "/funding" },
+    { name: "Docs", href: "/docs" },
+    { name: "blog", href: "/blog" },
+    { name: "About ", href: "/about" },
+    { name: "Community", href: "/community" },
+    { name: "affilitates", href: "/affilitates" },
   ];
 
   // Handle mouse enter for Features dropdown

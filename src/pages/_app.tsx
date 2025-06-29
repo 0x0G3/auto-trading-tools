@@ -1,14 +1,13 @@
 import Footer from "../components/UI/Footer";
 import Navbar from "../components/UI/Navbar";
+import { NavigationProvider } from "../context/navigation";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-// import Navbar from "../components/UI/Navbar";
-
 // import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { WagmiProvider } from "wagmi";
 // import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 // import { config } from "../wagmi";
-// import { AuthProvider } from "../context/AuthContext"; // ✅ Import Auth Context
+// import { AuthProvider } from "../context/AuthContext";
 // import { WatchlistProvider } from "../context/WatchlistContext";
 // import { BinanceProvider } from "../context/BinanceContext";
 
@@ -23,15 +22,17 @@ function MyApp({ Component, pageProps }: AppProps) {
             <AuthProvider>
               <WatchlistProvider>
                 <BinanceProvider> */}
-      <Navbar />
-      <Component {...pageProps} />
-      <Footer />
+      <NavigationProvider>
+        <Navbar />
+        <Component {...pageProps} />
+        <Footer />
+      </NavigationProvider>
       {/* </BinanceProvider>
-      //         </WatchlistProvider>
-      //       </AuthProvider>
-      //     </RainbowKitProvider>
-      //   </QueryClientProvider>
-      // </WagmiProvider> */}
+              </WatchlistProvider>
+            </AuthProvider>
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider> */}
     </>
   );
 }

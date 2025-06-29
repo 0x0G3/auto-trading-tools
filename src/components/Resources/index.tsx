@@ -12,7 +12,7 @@ export default function Resources() {
             <a href="/blog">Funding</a>
           </li>
           <li>
-            <a href="/about">About</a>
+            <a href="/about">about</a>
           </li>
         </ul>
       </div>

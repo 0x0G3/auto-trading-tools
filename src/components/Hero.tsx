@@ -1,18 +1,26 @@
 import React from "react";
 
-export default function Hero() {
+export default function Hero({
+  title = "Supercharge your trading strategy",
+  description = "Unlock the best trading indicators and AI agent for backtesting used by 15,000+ traders.",
+  buttonText = "Get Started!",
+  onButtonClick = () => {},
+  bgClass = "bg-black",
+  textColor = "text-white",
+  maxWidth = "max-w-md",
+}) {
   return (
-    <div className="hero bg-black min-h-screen">
+    <div className={`hero min-h-screen ${bgClass}`}>
       <div className="hero-content text-center">
-        <div className="max-w-md">
-          <h1 className="text-5xl font-bold">
-            Supercharge your trading strategy
-          </h1>
-          <p className="py-6">
-            Unlock the best trading indicators and AI agent for backtesting used
-            by 15,000+ traders.
-          </p>
-          <button className="btn btn-primary rounded-lg ">Get Started!</button>
+        <div className={maxWidth}>
+          <h1 className={`text-5xl font-bold ${textColor}`}>{title}</h1>
+          <p className={`py-6 ${textColor}`}>{description}</p>
+          <button
+            className="btn btn-primary rounded-lg"
+            onClick={onButtonClick}
+          >
+            {buttonText}
+          </button>
         </div>
       </div>
     </div>

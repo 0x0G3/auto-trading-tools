@@ -5,7 +5,7 @@ import Hero from "../../Hero";
 export default function About() {
   const { push } = useNavigation(); // Use the custom navigation context
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col min-h-screen bg-gray-100">
       <div className="flex flex-row ">
         <Hero
           title="We hvave all typesof backtesting tools"

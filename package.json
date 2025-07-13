@@ -39,8 +39,8 @@
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.0",
-    "@types/node": "^20.14.8",
-    "@types/react": "^18.3.5",
+    "@types/node": "20.19.7",
+    "@types/react": "18.3.23",
     "autoprefixer": "^10.4.20",
     "daisyui": "^4.12.22",
     "eslint": "^9.21.0",

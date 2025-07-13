@@ -4,7 +4,7 @@ import Hero from "../components/Hero";
 import InfoCards from "../components/InfoCards";
 import Testomonials from "../components/Testomonials";
 import Slideshow from "../components/Slideshow";
-import Twocardcta from "../components/Twocardcta";
+import Twocardcta from "../components/TwoCardCta";
 import Securedcheckout from "../components/Securedcheckout";
 import { useNavigation } from "../context/navigation";
 // import { useNavigation } from "../contexts/navigation"; // Adjust path

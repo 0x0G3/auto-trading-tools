@@ -7,7 +7,6 @@ import Slideshow from "../components/Slideshow";
 import Twocardcta from "../components/TwoCardCta";
 import Securedcheckout from "../components/Securedcheckout";
 import { useNavigation } from "../context/navigation";
-// import { useNavigation } from "../contexts/navigation"; // Adjust path
 
 const Home: NextPage = () => {
   // const router = useRouter();
@@ -38,9 +37,6 @@ const Home: NextPage = () => {
       </div>
       <div id="hero-cta" className="">
         <Twocardcta />
-      </div>
-      <div id="secured-checkout">
-        <Securedcheckout />
       </div>
       <div id="secured-checkout">
         <Securedcheckout />

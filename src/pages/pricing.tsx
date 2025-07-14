@@ -9,15 +9,17 @@ import Securedcheckout from "../components/Securedcheckout";
 export default function PricingPage() {
   return (
     <PricingProvider>
-      <FreeTierCta />
-      <div className="flex flex-row items-center justify-center my-2">
-        <TimeToggle />
+      <div className="m-8 bg-transparent">
+        <FreeTierCta />
+        <div className="flex flex-row items-center justify-center my-2">
+          <TimeToggle />
+        </div>
+        <div className="flex flex-row items-center justify-center space-x-5 m-3 p-6 bg-transparent">
+          <Pricing badge="Most Popular" tier="basic" />
+          <Pricing tier="advance" />
+        </div>
+        <Securedcheckout />
       </div>
-      <div className="flex flex-row items-center justify-center space-x-5 m-3 p-6 bg-gray-100">
-        <Pricing badge="Most Popular" tier="basic" />
-        <Pricing tier="advance" />
-      </div>
-      <Securedcheckout />
     </PricingProvider>
   );
 }

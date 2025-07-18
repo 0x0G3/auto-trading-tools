@@ -1,5 +1,10 @@
 import React from "react";
+import ProfileSetup from "./ProfileSetup";
 
 export default function CreateAccount() {
-  return <div>createAccount boiler plate</div>;
+  return (
+    <div>
+      <ProfileSetup />
+    </div>
+  );
 }

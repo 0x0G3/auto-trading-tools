@@ -38,7 +38,43 @@ export default function AuthCallback() {
           })
           .select()
           .single();
+        if (createError) {
+          router.push("/?error=Error creating user");
+          return;
+        }
+        user = newUser;
+
+        const { error: subError } = await supabase
+          .from("subscriptions")
+          .insert({ user_id: user.id, tier: "free", status: "active" });
+        if (subError) {
+          router.push("/?error=Error updating user");
+          return;
+        }
+      }
+      // Update last login
+      else {
+        // Update last login
+        const { data: updatedUser, error: updateError } = await supabase
+          .from("users")
+          // here
+          .update({ last_login: new Date().toISOString() })
+          .eq("auth_user_id", authUser.id)
+          .select()
+          .single();
+        if (updateError) {
+          router.push("/?error=Error updating user");
+        }
+        user = updatedUser;
+      }
+      // Redirect to profile setup if username or name is missing
+      if (!user.username || !user.name) {
+        router.push("/profile/setup");
+      } else {
+        router.push("/dashboard");
       }
     };
-  });
+    handleCallback();
+  }, [router]);
+  return <div>Loading...</div>;
 }

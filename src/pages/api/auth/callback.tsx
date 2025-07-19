@@ -1,6 +1,9 @@
-import { useRouter } from "next/router";
-import { supabase } from "../../../utils/supabase";
+"use client";
+
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "../../../utils/supabase";
+// import { supabase } from "../src/utils/supabase";
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -12,6 +15,7 @@ export default function AuthCallback() {
         router.push("/?error=Auth failed");
         return;
       }
+
       const authUser = data.session.user;
 
       // Check if user exists in public.users
@@ -25,7 +29,9 @@ export default function AuthCallback() {
         router.push("/?error=Error checking user");
         return;
       }
+
       let user;
+
       if (!existingUser) {
         // Create new user
         const { data: newUser, error: createError } = await supabase
@@ -38,43 +44,44 @@ export default function AuthCallback() {
           })
           .select()
           .single();
+
         if (createError) {
           router.push("/?error=Error creating user");
           return;
         }
         user = newUser;
 
+        // Create default free subscription
         const { error: subError } = await supabase
           .from("subscriptions")
           .insert({ user_id: user.id, tier: "free", status: "active" });
+
         if (subError) {
-          router.push("/?error=Error updating user");
+          router.push("/?error=Error creating subscription");
           return;
         }
-      }
-      // Update last login
-      else {
+      } else {
         // Update last login
         const { data: updatedUser, error: updateError } = await supabase
           .from("users")
-          // here
           .update({ last_login: new Date().toISOString() })
           .eq("auth_user_id", authUser.id)
           .select()
           .single();
+
         if (updateError) {
           router.push("/?error=Error updating user");
+          return;
         }
         user = updatedUser;
       }
-      // Redirect to profile setup if username or name is missing
-      if (!user.username || !user.name) {
-        router.push("/profile/setup");
-      } else {
-        router.push("/dashboard");
-      }
+
+      // Redirect to create-account to complete profile
+      router.push("/create-account");
     };
+
     handleCallback();
   }, [router]);
+
   return <div>Loading...</div>;
 }

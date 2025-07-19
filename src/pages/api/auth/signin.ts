@@ -95,7 +95,6 @@ export default async function handler(
         .from("subscriptions")
         .insert({ user_id: user.id, tier: tier || "free", status: "active" });
 
-      // here
       if (subError) {
         return res.status(500).json({ error: "Error creating subscription" });
       }
